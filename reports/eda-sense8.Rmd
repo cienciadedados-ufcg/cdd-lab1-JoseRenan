@@ -21,13 +21,17 @@ Analisaremos os episódios da falecida série Sense8.
 Houve duas temporadas: quais foram os melhores episódios? A melhor temporada?
 
 ```{r}
-episodes = read_csv(here("data/series_from_imdb.csv"), 
-                    progress = FALSE,
+data = read_csv(here("data/series_from_imdb.csv"), progress = FALSE,
                     col_types = cols(.default = col_double(), 
                                      series_name = col_character(), 
                                      episode = col_character(), 
                                      url = col_character(),
-                                     season = col_character())) %>% 
+                                     season = col_character()))
+```
+
+
+```{r}
+episodes = data %>% 
     filter(series_name == "Sense8") 
 ```
 
@@ -166,5 +170,15 @@ episodes %>%
 ```{r}
 episodes %>% 
     arrange(-amado_odiado)
+```
+```{r}
+data %>%
+    filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%
+    mutate(
+        bad_rating = r1 + r2 + r3 + r4 + r5,
+        good_rating = r6 + r7 + r8 + r9 + r10) %>%
+        ggplot(aes(x = series_name, y = good_rating)) + 
+            geom_boxplot()
+
 ```
 
