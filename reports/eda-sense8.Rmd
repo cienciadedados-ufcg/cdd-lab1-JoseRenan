@@ -173,12 +173,16 @@ episodes %>%
 ```
 ```{r}
 data %>%
-    filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%
-    mutate(
-        bad_rating = r1 + r2 + r3 + r4 + r5,
-        good_rating = r6 + r7 + r8 + r9 + r10) %>%
-        ggplot(aes(x = series_name, y = good_rating)) + 
+    filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%              
+    ggplot(aes(x = series_name, y = user_rating)) + 
             geom_boxplot()
 
 ```
 
+```{r}
+data %>%
+    filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%
+    ggplot(aes(x = series_ep, y = user_rating, color = series_name, size = user_votes)) + 
+      geom_point() 
+
+```
