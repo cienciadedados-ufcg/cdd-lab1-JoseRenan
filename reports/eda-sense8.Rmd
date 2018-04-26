@@ -171,6 +171,11 @@ episodes %>%
 episodes %>% 
     arrange(-amado_odiado)
 ```
+
+### Qual é a melhor avaliada?
+
+Analisando os boxplots das avaliações dos episódios das séries Mr Robot, American Idol e American Dad, vemos que  a série Mr Robot possui um range de avaliações bem mais agrupado acima da nota 8, mostrando que todos os episódios foram extremamente bem avaliados sem exceções. Ao compararmos as outras séries, percebemos um range de notas bem maior com notas inferiores às de Mr Robot, salvo raras exceções. Ou seja, olhando num contexto geral, Mr Robot foi um sucesso em todos os seus episódios, por outro lado American Idol aparentemente teve episódios distribuidas com mais de 50% deles aliados com notas muito baixas ou médias. American Dad, assim como Mr Robot, é uma série com episódios avaliados em notas bem próximas, porém quase 100% delas são abaixo das notas mais baixas de Mr Robot.
+
 ```{r}
 data %>%
     filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%              
@@ -179,10 +184,16 @@ data %>%
 
 ```
 
+### Mas será que é sempre assim?
+
+Analisando o gráfico de dispersão abaixo, podemos analisar 3 coisas muito importantes, a primeira delas é que American Dad e American Idol tem muito mais episódios que Mr Robot, fazendo com que as notas fiquem mais variadas ao longo dos episódios (e apareçam muitos outliers), a segunda coisa que é importante notar é que Mr Robot tem muito mais avaliações que as outras duas séries, fazendo com que nas outras a nota individual tenha um peso muito maior.
+
 ```{r}
 data %>%
     filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>%
-    ggplot(aes(x = series_ep, y = user_rating, color = series_name, size = user_votes)) + 
-      geom_point() 
+    group_by(series_name) %>% 
+    mutate(conclusao_serie = series_ep / max(series_ep)) %>%
+    ggplot(aes(x = conclusao_serie, y = user_rating, color = series_name, size = user_votes)) + 
+      geom_point()
 
 ```
