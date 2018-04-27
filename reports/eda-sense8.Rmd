@@ -1,5 +1,5 @@
 ---
-title: "EDA Sense8"
+title: "EDA Series"
 output:
   html_notebook:
     toc: yes
@@ -16,9 +16,7 @@ library(here)
 theme_set(theme_bw())
 ```
 
-Analisaremos os episódios da falecida série Sense8. 
-
-Houve duas temporadas: quais foram os melhores episódios? A melhor temporada?
+# Análise comparativa das séries American Idol, American Dad e Mr Robot
 
 ```{r}
 data = read_csv(here("data/series_from_imdb.csv"), progress = FALSE,
@@ -29,148 +27,6 @@ data = read_csv(here("data/series_from_imdb.csv"), progress = FALSE,
                                      season = col_character()))
 ```
 
-
-```{r}
-episodes = data %>% 
-    filter(series_name == "Sense8") 
-```
-
-## Quantas avaliações temos por episódio? 
-
-Cada episódio foi avaliado por um número diferente de usuários do IMDB. Vejamos como é essa distribuição. 
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = season, y = user_votes)) +
-    geom_violin() + 
-    geom_jitter(width = .07) 
-```
-
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = season_ep, y = user_votes))  + 
-    geom_line() + 
-    facet_wrap(~ season)
-               
-```
-
-A quantidade de avaliações varia bastante. Exceto pelo primeiro episódio, os episódios da segunda temporada tem muito menos avaliações. Talvez porque os dados foram coletados logo depois que a segunda temporada foi lançada. 
-
-## Qual a distribuição da avaliação dos episódios?
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = "Sense8", y = user_rating)) + 
-    geom_jitter(width = .05) +
-    ylim(5, 10) + 
-    labs(x = "Episódios", y = "Avaliação no IMDB")
-```
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = user_rating)) + 
-    geom_histogram(binwidth = .5, fill = "pink", color = "black") + 
-    geom_rug(alpha = .5, size = 1.2)
-
-```
-
-```{r}
-sumarios = episodes %>% 
-    summarise(mediana = median(user_rating), 
-              media = mean(user_rating))
-
-episodes %>% 
-    ggplot(aes(x = user_rating)) + 
-    geom_histogram(binwidth = .5, fill = "white", color = "black") + 
-    geom_vline(xintercept = sumarios$media, color = "darkorange") + 
-    geom_vline(xintercept = sumarios$mediana, color = "brown") 
-```
-
-### Qual é esse episódio pior avaliado? 
-
-```{r}
-episodes %>% 
-    filter(user_rating == min(user_rating))
-```
-
-
-## Qual a pior/melhor temporada segundo o IMDB?
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = season, y = user_rating)) + 
-    geom_boxplot(width = .5, outlier.color = NA) +   
-    geom_jitter(width = .1, size = 2, alpha = .5, color = "red")
-```
-
-
-### Há padrões na avaliação ao longo do tempo?
-
-```{r}
-episodes %>% 
-  ggplot(aes(x = season_ep, y = user_rating, color = season)) + 
-  geom_line() + 
-  geom_point() 
-```
-
-Correlações
-
-```{r}
-episodes %>% 
-    group_by(season) %>% 
-    summarise(correlacao_linear = cor(season_ep, user_rating, 
-                                      method = "pearson"), 
-              correlacao_kendall = cor(season_ep, user_rating, 
-                                       method = "kendall"))
-
-```
-
-## Qual o episódio mais detestado? 
-
-```{r}
-episodes %>% 
-    ggplot(aes(x = season_ep, y = r1, color = season)) + 
-    geom_line() + 
-    scale_x_continuous(breaks = 1:12)
-```
-
-### E amado? 
-
-```{r}
-episodes %>%
-    ggplot(aes(x = season_ep, y = r10, color = season)) +
-    geom_line() +
-    scale_x_continuous(breaks = 1:12)
-```
-
-### Amor e ódio andam juntos?
-
-Quais são episódios que estão entre os mais amados e mais odiados? 
-
-```{r}
-episodes =  episodes %>%
-    mutate(
-        rank_odiados = row_number(r1), # maior = mais odiado
-        rank_amados = row_number(r10), # maior = mais amado
-        amado_odiado = rank_amados * rank_odiados) # maior = mais amado E odiado
-    
-episodes %>%
-    ggplot(aes(
-        x = r1,
-        y = r10,
-        color = season,
-        size = amado_odiado,
-        label = season_ep
-    )) +
-    geom_point(alpha = .7) +
-    geom_text(nudge_x = .001, nudge_y = -.01) 
-```
-
-```{r}
-episodes %>% 
-    arrange(-amado_odiado)
-```
 
 ### Qual é a melhor avaliada?
 
@@ -186,7 +42,9 @@ data %>%
 
 ### Mas será que é sempre assim?
 
-Analisando o gráfico de dispersão abaixo, podemos analisar 3 coisas muito importantes, a primeira delas é que American Dad e American Idol tem muito mais episódios que Mr Robot, fazendo com que as notas fiquem mais variadas ao longo dos episódios (e apareçam muitos outliers), a segunda coisa que é importante notar é que Mr Robot tem muito mais avaliações que as outras duas séries, fazendo com que nas outras a nota individual tenha um peso muito maior.
+Analisando o gráfico de dispersão abaixo, podemos analisar 3 coisas muito importantes, a primeira delas é que American Dad e American Idol tem muito mais episódios que Mr Robot, fazendo com que as notas fiquem mais variadas ao longo dos episódios (e apareçam muitos outliers), a segunda coisa que é importante notar é que Mr Robot tem muito mais avaliações que as outras duas séries, fazendo com que nas outras a nota individual tenha um peso muito maior. 
+
+Ainda com o gráfico abaixo, podemos perceber que a série American Idol tem um certo crescimento se observarmos que as notas acima de 5 no início da série são bem poucas bem como as abaixo de 6 nos ultimos episódios. Enquanto isso, em Mr Robot, vemos que a série possui altos e baixos, começa com uma avaliação incrível, cai um pouco, cresce novamente e é assim até o ultimo episódio, ao contrário de American Dad que se mantém praticamente na mesma faixa de notas durante todas as temporadas. Ainda analisando essa informação, podemos ver que de um episódio pro outro as notas são bem próximas na maioria dos casos, apesar de, por exemplo, notarmos uma diferença considerável quando comparamos o primeiro episódio de Mr Robot com o quarto, se compararmos o primeiro com o segundo vemos que não há tanta diferença assim, e isso se aplica às outras duas séries em boa parte dos episódios, apesar de algumas exceções notáveis.
 
 ```{r}
 data %>%
