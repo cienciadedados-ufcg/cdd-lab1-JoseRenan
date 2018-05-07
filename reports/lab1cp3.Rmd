@@ -26,6 +26,16 @@ data = read_csv(here("data/series_from_imdb.csv"), progress = FALSE,
                                      season = col_character()))
 ```
 
+
+## O número de votos de uma série interfere na sua avaliação geral?
+
+Como é calculado abaixo, podemos ver que não existe muita correlação entre o número de votos e a avaliação do episódio, nos levando a notar que, neste conjunto de dados, um episódio pode ter qualquer nota independente de quantas avaliações ele venha a ter.
+
+```{r}
+data %>% 
+    summarise(correlacao = cor(user_rating, user_votes))
+```
+
 ```{r}
 data_long = data %>%
     group_by(series_name) %>% 
@@ -34,10 +44,32 @@ data_long = data %>%
 ```
 
 ```{r}
+data_consenso = data_long %>%
+    group_by(series_name) %>% 
+    summarize_at(vars(proporcao), funs(var))
+```
+
+
+## Existe um consenso nas notas das séries?
+
+No boxplot abaixo foi calculada a variância da proporção de pessoas que deram cada nota de cada série, ou seja, quanto maior a variancia, maior o consenso em uma nota e vice-versa. Podemos notar no gráfico que mais de 75% das ocorrencias estão abaixo de 0.02, porém na prática, o quanto essa variancia representa de consenso? No próximo ponto veremos que existem grupos de consenso e que a variancia pode indicar que existe uma nota com muitas ocorrencias ou um grupo de notas com muitas ocorrencias.
+
+```{r}
+data_consenso %>%
+    ggplot(aes(y = proporcao, x=factor(0))) + 
+      geom_boxplot() +
+      labs(x = "", y = "Variancia da proporção de usuários para cada nota")
+```
+
+## Grupos de consenso
+
+Como foi dito anteriormente, algumas séries apresentam um consenso, digamos que, mais forte que outras. No gráfico abaixo mostro um exemplo de série com variancia muito próxima de zero (Agents of S.H.I.E.L.D), uma com variância próxima de 0.02 (Mr Robot) e uma com variancia acima de 0.05 (Super Girl). Podemos perceber que quanto mais próximo de zero, maior o grupo de consenso, por exemplo, em Agents of Shield, as notas estão muito bem espalhadas enquanto em Super Girl temos uma grande maioria de notas como 10. Em Mr Robot vemos um grupo acima de notas 8 que detém maioria das notas.
+
+```{r}
 data_long %>%
-    filter(series_name %in% c("Mr Robot", "American Idol", "American Dad")) %>% 
+    filter(series_name %in% c("Mr Robot", "Marvel: Agents Of S.H.I.E.L.D", "Super Girl")) %>% 
     ggplot(aes(x = series_name, y = rating, color = series_name, size = proporcao)) + 
-      geom_point()
+      geom_point(stat = "identity")
 ```
 
 
